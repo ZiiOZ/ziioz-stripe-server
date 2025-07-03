@@ -7,17 +7,26 @@ import bodyParser from "body-parser";
 dotenv.config();
 
 const app = express();
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-06-30.basil",
 });
+
+// Health check
 app.get("/", (req: Request, res: Response) => {
   res.send("✅ ZiiOZ Stripe Server is running.");
 });
 
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Create a connected account
+// Test route
+app.post("/test", (req: Request, res: Response) => {
+  res.json({ ok: true, message: "POST /test reached successfully" });
+});
+
+// Create account
 app.post("/create-account", async (req: Request, res: Response): Promise<void> => {
   try {
     const account = await stripe.accounts.create({
@@ -38,11 +47,11 @@ app.post("/create-account", async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// Create payment intent example
+// Payment intent
 app.post("/create-payment-intent", async (req: Request, res: Response): Promise<void> => {
   try {
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 1000, // amount in cents
+      amount: 1000,
       currency: "usd",
       automatic_payment_methods: { enabled: true },
     });
@@ -53,7 +62,7 @@ app.post("/create-payment-intent", async (req: Request, res: Response): Promise<
   }
 });
 
-// Webhook endpoint with raw body parser to avoid body-parser.json conflicts
+// Webhook
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -64,11 +73,7 @@ app.post(
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig as string,
-        webhookSecret
-      );
+      event = stripe.webhooks.constructEvent(req.body, sig as string, webhookSecret);
     } catch (err: any) {
       console.error("Webhook signature verification failed:", err.message);
       res.status(400).send(`Webhook Error: ${err.message}`);
