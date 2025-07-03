@@ -22,11 +22,17 @@ const app = (0, express_1.default)();
 const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2025-06-30.basil",
 });
+// Health check GET
 app.get("/", (req, res) => {
     res.send("✅ ZiiOZ Stripe Server is running.");
 });
+// Always mount middleware *before* routes
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
+// Simple test POST
+app.post("/test", (req, res) => {
+    res.json({ ok: true, message: "POST /test reached successfully" });
+});
 // Create a connected account
 app.post("/create-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -46,11 +52,11 @@ app.post("/create-account", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: err.message });
     }
 }));
-// Create payment intent example
+// Create payment intent
 app.post("/create-payment-intent", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const paymentIntent = yield stripe.paymentIntents.create({
-            amount: 1000, // amount in cents
+            amount: 1000,
             currency: "usd",
             automatic_payment_methods: { enabled: true },
         });
@@ -61,7 +67,7 @@ app.post("/create-payment-intent", (req, res) => __awaiter(void 0, void 0, void 
         res.status(500).json({ error: err.message });
     }
 }));
-// Webhook endpoint with raw body parser to avoid body-parser.json conflicts
+// Webhook endpoint
 app.post("/webhook", express_1.default.raw({ type: "application/json" }), (req, res) => {
     const sig = req.headers["stripe-signature"];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
