@@ -10,6 +10,9 @@ const app = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-06-30.basil",
 });
+app.get("/", (req: Request, res: Response) => {
+  res.send("✅ ZiiOZ Stripe Server is running.");
+});
 
 app.use(cors());
 app.use(bodyParser.json());

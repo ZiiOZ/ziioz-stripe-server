@@ -22,6 +22,9 @@ const app = (0, express_1.default)();
 const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2025-06-30.basil",
 });
+app.get("/", (req, res) => {
+    res.send("✅ ZiiOZ Stripe Server is running.");
+});
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 // Create a connected account
